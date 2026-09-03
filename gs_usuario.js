@@ -41,6 +41,14 @@
     }, ms || 15000).then(function (r) { return r.json(); });
   }
 
+  function asegurarEstiloBarra() {
+    if (d.getElementById('gsUsuarioEstiloBarra')) return;
+    var st=d.createElement('style');
+    st.id='gsUsuarioEstiloBarra';
+    st.textContent='.gs-mi-cuenta-texto{display:none;}@media (min-width:768px){.gs-mi-cuenta-texto{display:inline;}}';
+    (d.head||d.documentElement).appendChild(st);
+  }
+
   function asegurarBarra() {
     if (d.getElementById('barraUsuarioGlobal')) return;
     d.body.insertAdjacentHTML('afterbegin', '<div id="barraUsuarioGlobal" class="sticky-top"><div id="barraUsuarioDinamica" class="p-0 pb-1 bg-white d-flex flex-column justify-content-center align-items-center text-center gap-1" style="display:none;"><span id="barraUsuarioTexto" class="p-0 m-0"></span><div class="d-flex gap-1 flex-wrap justify-content-center w-100" id="barraUsuarioBotones"></div></div></div>');
@@ -90,9 +98,9 @@
     var logueado = !!(w.datosClienteLogueado && w.usuarioLogueado);
     var esMinorista = String(w.modoOperacion || '').toLowerCase() === 'minorista';
     var h=[];
-    h.push('<button class="btn btn-sm btn-primary" '+(pagina==='tienda'?'disabled':'onclick="window.location.href=\''+URL_TIENDA+'\'"')+'><i class="bi bi-shop"></i><span class="d-none d-md-inline"> Tienda</span></button>');
+    h.push('<button class="btn btn-sm btn-primary" '+(pagina==='tienda'?'disabled':'onclick="window.location.href=\''+URL_TIENDA+'\'"')+'><i class="bi bi-shop"></i> Tienda</button>');
     if (!esMinorista && logueado) {
-      h.push('<div class="btn-group" role="group"><button class="btn btn-sm btn-secondary" '+(pagina==='usuario'?'disabled':'onclick="window.location.href=\''+URL_USUARIO+'\'"')+' title="Mi cuenta"><i class="bi bi-person-circle"></i><span class="d-none d-md-inline"> Mi Cuenta</span></button><button class="btn btn-sm btn-warning" onclick="cerrarSesion()" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i></button></div>');
+      h.push('<div class="btn-group" role="group"><button class="btn btn-sm btn-secondary" '+(pagina==='usuario'?'disabled':'onclick="window.location.href=\''+URL_USUARIO+'\'"')+' title="Mi cuenta"><i class="bi bi-person-circle"></i><span class="gs-mi-cuenta-texto"> Mi Cuenta</span></button><button class="btn btn-sm btn-warning" onclick="cerrarSesion()" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i></button></div>');
     } else if (!esMinorista) {
       h.push('<div class="btn-group" role="group"><button class="btn btn-sm btn-secondary" onclick="mostrarLogin()"><i class="bi bi-box-arrow-in-right"></i> Ingresar</button><button class="btn btn-sm btn-warning" onclick="mostrarRegistro()"><i class="bi bi-person-plus"></i></button></div>');
     }
@@ -134,7 +142,7 @@
     return fetchUsuario(API_USUARIO+'?config=1',{},12000).then(function(r){return r.json();}).then(function(c){w.registroPublico=!!(c&&String(c.registro_publico||'NO').toUpperCase()==='SI'); w.modoOperacion=String((c&&c.modo_operacion)||'').trim().toLowerCase(); w.actualizarBarraUsuario();}).catch(function(){});
   }
 
-  function iniciar(){asegurarBarra();asegurarModales();var s=null;try{s=JSON.parse(localStorage.getItem('sesionUsuarioV5')||'null');}catch(e){}w.verificandoSesion=!!(s&&s.usuario&&s.token);w.actualizarBarraUsuario();cargarConfigUsuario().finally(function(){w.verificarSesionGuardada();});}
+  function iniciar(){asegurarEstiloBarra();asegurarBarra();asegurarModales();var s=null;try{s=JSON.parse(localStorage.getItem('sesionUsuarioV5')||'null');}catch(e){}w.verificandoSesion=!!(s&&s.usuario&&s.token);w.actualizarBarraUsuario();cargarConfigUsuario().finally(function(){w.verificarSesionGuardada();});}
   if(d.readyState==='loading') d.addEventListener('DOMContentLoaded',iniciar); else iniciar();
 
   w.GSUsuario={actualizarBarra:w.actualizarBarraUsuario,verificarSesion:w.verificarSesionGuardada,login:w.login,logout:w.cerrarSesion,getClienteActual:function(){return w.datosClienteLogueado;}};
