@@ -1,5 +1,5 @@
 /* =========================================================
-   GS_USUARIO.js
+   GS_USUARIO.js 1
    ÚNICO JS COMPARTIDO POR TIENDA / CUPONES / USUARIO
    Barra + sesión + login + registro + navegación
    ========================================================= */
