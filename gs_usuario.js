@@ -88,15 +88,17 @@
       return;
     }
     var logueado = !!(w.datosClienteLogueado && w.usuarioLogueado);
+    var esMinorista = String(w.modoOperacion || '').toLowerCase() === 'minorista';
     var h=[];
     h.push('<button class="btn btn-sm btn-primary" '+(pagina==='tienda'?'disabled':'onclick="window.location.href=\''+URL_TIENDA+'\'"')+'><i class="bi bi-shop"></i><span class="d-none d-md-inline"> Tienda</span></button>');
-    if (logueado) {
-      h.push('<div class="btn-group" role="group"><button class="btn btn-sm btn-secondary" '+(pagina==='usuario'?'disabled':'onclick="window.location.href=\''+URL_USUARIO+'\'"')+' title="Mi cuenta"><i class="bi bi-person-circle"></i></button><button class="btn btn-sm btn-warning" onclick="cerrarSesion()" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i></button></div>');
-    } else {
+    if (!esMinorista && logueado) {
+      h.push('<div class="btn-group" role="group"><button class="btn btn-sm btn-secondary" '+(pagina==='usuario'?'disabled':'onclick="window.location.href=\''+URL_USUARIO+'\'"')+' title="Mi cuenta"><i class="bi bi-person-circle"></i><span class="d-none d-md-inline"> Mi Cuenta</span></button><button class="btn btn-sm btn-warning" onclick="cerrarSesion()" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i></button></div>');
+    } else if (!esMinorista) {
       h.push('<div class="btn-group" role="group"><button class="btn btn-sm btn-secondary" onclick="mostrarLogin()"><i class="bi bi-box-arrow-in-right"></i> Ingresar</button><button class="btn btn-sm btn-warning" onclick="mostrarRegistro()"><i class="bi bi-person-plus"></i></button></div>');
     }
     botones.innerHTML=h.join('');
     if (typeof w.actualizarContadores === 'function') w.actualizarContadores();
+    if (typeof w.GSUsuarioEstadoCambiado === 'function') w.GSUsuarioEstadoCambiado();
   };
 
   w.verificarSesionGuardada = function () {
@@ -112,8 +114,7 @@
 
   w.cerrarSesion = function (mostrarAviso) {
     w.usuarioLogueado=null; w.datosClienteLogueado=null; localStorage.removeItem('sesionUsuarioV5'); localStorage.removeItem('misPedidosV5'); w.actualizarBarraUsuario();
-    if (pagina==='usuario') navegar(URL_TIENDA);
-    else if (mostrarAviso !== false && typeof w.avisar==='function') w.avisar('Sesión cerrada');
+    if (mostrarAviso !== false && typeof w.avisar==='function') w.avisar('Sesión cerrada');
   };
 
   w.alternarVisibilidadPassword=function(inputId,boton){var input=d.getElementById(inputId);if(!input)return;var mostrar=input.type==='password';input.type=mostrar?'text':'password';var i=boton?boton.querySelector('i'):null;if(i){i.classList.toggle('bi-eye',!mostrar);i.classList.toggle('bi-eye-slash',mostrar);}input.focus({preventScroll:true});};
@@ -129,8 +130,8 @@
 
   function cargarConfigUsuario(){
     // En tienda/usuario el widget ya carga Config. En cupones la cargamos acá.
-    if (typeof w.configTienda==='object' && w.configTienda && Object.keys(w.configTienda).length) { w.registroPublico=String(w.configTienda.registro_publico||'NO').toUpperCase()==='SI'; return Promise.resolve(); }
-    return fetchUsuario(API_USUARIO+'?config=1',{},12000).then(function(r){return r.json();}).then(function(c){w.registroPublico=!!(c&&String(c.registro_publico||'NO').toUpperCase()==='SI');}).catch(function(){});
+    if (typeof w.configTienda==='object' && w.configTienda && Object.keys(w.configTienda).length) { w.registroPublico=String(w.configTienda.registro_publico||'NO').toUpperCase()==='SI'; w.modoOperacion=String(w.configTienda.modo_operacion||w.modoOperacion||'').trim().toLowerCase(); return Promise.resolve(); }
+    return fetchUsuario(API_USUARIO+'?config=1',{},12000).then(function(r){return r.json();}).then(function(c){w.registroPublico=!!(c&&String(c.registro_publico||'NO').toUpperCase()==='SI'); w.modoOperacion=String((c&&c.modo_operacion)||'').trim().toLowerCase(); w.actualizarBarraUsuario();}).catch(function(){});
   }
 
   function iniciar(){asegurarBarra();asegurarModales();var s=null;try{s=JSON.parse(localStorage.getItem('sesionUsuarioV5')||'null');}catch(e){}w.verificandoSesion=!!(s&&s.usuario&&s.token);w.actualizarBarraUsuario();cargarConfigUsuario().finally(function(){w.verificarSesionGuardada();});}
